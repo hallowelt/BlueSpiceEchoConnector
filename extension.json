@@ -1,6 +1,6 @@
 {
     "name": "BlueSpiceEchoConnector",
-    "version": "2.27.1",
+    "version": "2.27.2",
     "url": "https://help.bluespice.com/index.php/BlueSpiceEchoConnector",
     "author": [
         "Sebastian Ulbricht",
@@ -25,12 +25,27 @@
         "BsEchoHTMLEmailFormatter": "includes/formatters/BsEchoHTMLEmailFormatter.php",
         "BsEchoEventPresentationModel": "includes/formatters/BsEchoEventPresentationModel.php",
         "BsEchoEmailDigest": "includes/formatters/BsEchoEmailDigest.php",
-        "BsEmailBatch": "includes/BsEmailBatch.php"
+        "BsEmailBatch": "includes/BsEmailBatch.php",
+        "BsEchoUserLocator": "includes/UserLocator.php"
     },
     "Hooks": {
         "BeforeNotificationsInit": "EchoConnectorHooks::onBeforeNotificationsInit",
         "EchoGetDefaultNotifiedUsers": "EchoConnectorHooks::onEchoGetDefaultNotifiedUsers",
-        "EchoGetBundleRules": "EchoConnectorHooks::onEchoGetBundleRules"
+        "EchoGetBundleRules": "EchoConnectorHooks::onEchoGetBundleRules",
+	"BeforePageDisplay": "EchoConnectorHooks::onBeforePageDisplay"
     },
+	"ResourceModules": {
+		"ext.echo.fixer": {
+			"scripts": "echo.loader.fixer.js",
+			"dependencies": [
+				"ext.echo.ui",
+				"ext.echo.ui.desktop"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "BlueSpiceEchoConnector/resources"
+	},
     "manifest_version": 1
 }
