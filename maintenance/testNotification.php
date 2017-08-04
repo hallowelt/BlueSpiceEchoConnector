@@ -29,6 +29,8 @@ class TestNotification extends Maintenance {
 		$this->addOption( "key", "The notification to trigger", true );
 		$this->addOption( "agent", "The user that triggers the notification" );
 		$this->addOption( "title", "The title to associate the notification with" );
+		$this->addOption( "affectedusers", "Comma seperated list of usernames", false );
+		$this->addOption( "affectedgroups", "Comma seperated list of groups", false );
 		$this->addOption( "outputMail", "Whether the mails should be put out to the console", false, false );
 	}
 
@@ -79,10 +81,17 @@ class TestNotification extends Maintenance {
 	}
 
 	protected function makeExtraParams() {
-		return array(
-					'affected-users' => [ 1 ]
-				);
-		return [];
+		$aExtra = [];
+		$aAffectedUsers = $this->getAffectedUsers();
+		if( !empty( $aAffectedUsers ) ) {
+			$aExtra['affected-users'] = $aAffectedUsers;
+		}
+		$aAffectedGroups = $this->getAffectedGroups();
+		if( !empty( $aAffectedGroups ) ) {
+			$aExtra['affected-groups'] = $aAffectedGroups;
+		}
+
+		return $aExtra;
 	}
 
 	protected function setupAlternateUserMailer() {
@@ -134,6 +143,24 @@ class TestNotification extends Maintenance {
 
 		$this->output( implode( "\n", $out) );
 	}
+
+	protected function getAffectedUsers() {
+		$sAffectedUsers = $this->getOption( 'affectedusers', '' );
+		$aUserNames = explode( ',', $sAffectedUsers );
+		$aUsers = [];
+		foreach( $aUserNames as $sUserName ) {
+			$aUsers[] = User::newFromName( $sUserName );
+		}
+		return $aUsers;
+	}
+
+	protected function getAffectedGroups() {
+		$sAffectedGroups = $this->getOption( 'affectedgroups', '' );
+		$aGroups = explode( ',', $sAffectedGroups );
+		$aGroups = array_map( 'trim', $aGroups );
+		return $aGroups;
+	}
+
 }
 
 $maintClass = "TestNotification";
