@@ -6,7 +6,8 @@
 	"author": [
 		"Sebastian Ulbricht",
 		"Robert Vogel",
-		"Dejan Savuljesku"
+		"Dejan Savuljesku",
+		"Leonid Verhovskij"
 	],
 	"descriptionmsg": "bs-echoconnector-extension-description",
 	"type": "bluespice",
