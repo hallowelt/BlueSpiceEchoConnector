@@ -150,7 +150,7 @@ class BsEchoNotificationHandler extends BSNotificationHandler {
 			) )
 		);
 
-		Hooks::register ( 'ArticleDeleteComplete', 'BsEchoNotificationHandler::onArticleDeleteComplete' );
+		#Hooks::register ( 'ArticleDeleteComplete', 'BsEchoNotificationHandler::onArticleDeleteComplete' );
 		Hooks::register ( 'ArticleSaveComplete', 'BsEchoNotificationHandler::onArticleSaveComplete' );
 		Hooks::register ( 'BSUserManagerAfterAddUser', 'BsEchoNotificationHandler::onBSUserManagerAfterAddUser' );
 		Hooks::register ( 'TitleMoveComplete', 'BsEchoNotificationHandler::onTitleMoveComplete' );

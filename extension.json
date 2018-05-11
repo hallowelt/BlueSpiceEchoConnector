@@ -10,7 +10,16 @@
 	],
 	"descriptionmsg": "bs-echoconnector-extension-description",
 	"type": "bluespice",
-	"callback": "EchoConnectorHooks::onRegistration",
+	"attributes": {
+		"BlueSpiceFoundation": {
+			"Notifiers": {
+				"bsecho": "\\BlueSpice\\EchoConnector\\Notifier\\EchoNotifier"
+			},
+			"NotificationRegistrationFunctions": [
+				"\\BlueSpice\\EchoConnector\\Extension::registerNotifications"
+			]
+		}
+	},
 	"MessagesDirs": {
 		"BlueSpiceEchoConnector": [
 			"i18n"
@@ -24,14 +33,17 @@
 		"BsEchoTextEmailFormatter": "includes/formatters/BsEchoTextEmailFormatter.php",
 		"BsEchoTextEmailDecorator": "includes/formatters/BsEchoTextEmailDecorator.php",
 		"BsEchoHTMLEmailFormatter": "includes/formatters/BsEchoHTMLEmailFormatter.php",
-		"BsEchoEventPresentationModel": "includes/formatters/BsEchoEventPresentationModel.php",
 		"BsEchoEmailDigest": "includes/formatters/BsEchoEmailDigest.php",
 		"BsEmailBatch": "includes/BsEmailBatch.php",
 		"BsEchoUserLocator": "includes/UserLocator.php"
 	},
 	"Hooks": {
-		"BeforeNotificationsInit": "EchoConnectorHooks::onBeforeNotificationsInit",
-		"EchoGetDefaultNotifiedUsers": "EchoConnectorHooks::onEchoGetDefaultNotifiedUsers",
+		"ArticleDeleteComplete": [
+			"\\BlueSpice\\EchoConnector\\Hook\\ArticleDeleteComplete\\NotifyUsersOnDelete::callback"
+		],
+		"TitleMoveComplete": [
+			"\\BlueSpice\\EchoConnector\\Hook\\TitleMoveComplete\\NotifyUsers::callback"
+		],
 		"EchoGetBundleRules": "EchoConnectorHooks::onEchoGetBundleRules",
 		"BeforePageDisplay": "EchoConnectorHooks::onBeforePageDisplay"
 	},
@@ -54,5 +66,6 @@
 		"localBasePath": "resources",
 		"remoteExtPath": "BlueSpiceEchoConnector/resources"
 	},
-	"manifest_version": 1
+	"load_composer_autoloader": true,
+	"manifest_version": 2
 }

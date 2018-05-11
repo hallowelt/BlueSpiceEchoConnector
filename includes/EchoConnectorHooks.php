@@ -197,10 +197,29 @@ class EchoConnectorHooks {
 	 * @return boolean
 	 */
 	public static function onBeforePageDisplay( &$out, &$skin ) {
-		if( $out->getTitle()->isSpecial( 'Notifications' ) ) {
+		/*$notifications = \MediaWiki\MediaWikiServices::getInstance()->getService(
+			'BSNotifications'
+		);
+		$notifier = $notifications->getNotifier( 'bsecho' );
+		$notification = $notifier->getNotificationObject(
+			'bs-adduser',
+			[
+				'agent' => \User::newFromId( 2 ),
+				'title' => \Title::newMainPage(),
+				'extra' => [
+					'summary' => 'mychanges',
+					'titlelink' => true,
+					'realname' => "MY NAME",
+					'difflink' => ''
+				],
+				'affected-users' => [ 1 ]
+			]
+		);
+		$notifications->notify( $notification );*/
+		/**if( $out->getTitle()->isSpecial( 'Notifications' ) ) {
 			$out->addModules( 'ext.bluespice.echoconnector.fixer' );
 			$out->addModuleStyles( 'ext.bluespice.echoconnector.fixer.styles' );
-		}
+		}*/
 		return true;
 	}
 }
