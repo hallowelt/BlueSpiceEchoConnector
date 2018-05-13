@@ -26,8 +26,7 @@ class NotifyUsers extends TitleMoveComplete {
 				'extra' => [
 					'newtitle' => $this->newTitle,
 					'realname' => $realname
-				],
-				'affected-users' => [1]
+				]
 			]
 		);
 

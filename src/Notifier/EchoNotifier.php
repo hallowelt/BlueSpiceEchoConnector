@@ -7,13 +7,18 @@ use \BlueSpice\EchoConnector\EchoEventPresentationModel;
 use \BlueSpice\EchoConnector\NotificationFormatter;
 
 class EchoNotifier implements \BlueSpice\INotifier {
+	protected $echoNotifications;
+	protected $echoNotificationCategories;
 	
 	public function getNotificationObject( $key, $params ) {
 		return new EchoNotification( $key, $params );
 	}
 
 	public function init() {
-		return;
+		global $wgEchoNotifications, $wgEchoNotificationCategories;
+
+		$this->echoNotifications = $wgEchoNotifications;
+		$this->echoNotificationCategories = $wgEchoNotificationCategories;
 	}
 
 	public function notify( $notification ) {
@@ -38,15 +43,13 @@ class EchoNotifier implements \BlueSpice\INotifier {
 	}
 
 	public function registerNotification($key, $params) {
-		global $wgEchoNotifications;
-
 		$extraParams = [];
 		if ( !empty( $params[ 'extra-params' ] ) ) {
 			$extraParams = $params[ 'extra-params' ];
 		}
 
 		if ( !isset ( $extraParams[ 'formatter-class' ] ) ) {
-			$extraParams[ 'formatter-class' ] = NotificationFormatter::class;
+			//$extraParams[ 'formatter-class' ] = NotificationFormatter::class;
 		}
 		if ( !isset ( $extraParams[ 'presentation-model' ] ) ) {
 			$extraParams[ 'presentation-model' ] = EchoEventPresentationModel::class;
@@ -56,7 +59,13 @@ class EchoNotifier implements \BlueSpice\INotifier {
 			$extraParams[ 'icon' ] = $params[ 'icon' ];
 		}
 
-		$wgEchoNotifications[$key] = $extraParams + [
+		if( !isset( $params['user-locators'] ) || !is_array( $params['user-locators'] ) ) {
+			$params['user-locators'] = [self::class . '::setUsersToNotify'];
+		} else {
+			$params['user-locators'][] = self::class . '::setUsersToNotify';
+		}
+
+		$this->echoNotifications[$key] = $extraParams + [
 			'category' => $params[ 'category' ],
 			'title-message' => $params[ 'summary-message' ],
 			'title-params' => $params[ 'summary-params' ],
@@ -66,18 +75,18 @@ class EchoNotifier implements \BlueSpice\INotifier {
 			'email-subject-params' => $params[ 'email-subject-params' ],
 			'email-body-batch-message' => $params[ 'email-body' ],
 			'email-body-batch-params' => $params[ 'email-body-params' ],
-			'user-locators' => [self::class . '::setUsersToNotify']
+			'user-locators' => $params['user-locators']
 		];
 	}
 
 	public function registerNotificationCategory( $key, $params ) {
-		global $wgEchoNotificationCategories;
-
-		$wgEchoNotificationCategories[$key] = $params;
+		$this->echoNotificationCategories[$key] = $params;
 	}
 
-	public function unRegisterNotification($key) {
-		
+	public function unRegisterNotification( $key ) {
+		if( isset( $this->echoNotifications[$key] ) ) {
+			unset( $this->echoNotifications[$key] );
+		}
 	}
 
 	public static function setUsersToNotify( $event ) {

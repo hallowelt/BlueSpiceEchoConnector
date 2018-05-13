@@ -26,16 +26,12 @@
 		]
 	},
 	"AutoloadClasses": {
-		"EchoConnectorHooks": "includes/EchoConnectorHooks.php",
-		"BsEchoNotificationHandler": "includes/BsEchoNotificationHandler.php",
-		"BsNotificationsFormatter": "includes/formatters/BsNotificationsFormatter.php",
 		"BsEchoEmailSingle": "includes/formatters/BsEchoEmailSingle.php",
 		"BsEchoTextEmailFormatter": "includes/formatters/BsEchoTextEmailFormatter.php",
 		"BsEchoTextEmailDecorator": "includes/formatters/BsEchoTextEmailDecorator.php",
 		"BsEchoHTMLEmailFormatter": "includes/formatters/BsEchoHTMLEmailFormatter.php",
 		"BsEchoEmailDigest": "includes/formatters/BsEchoEmailDigest.php",
-		"BsEmailBatch": "includes/BsEmailBatch.php",
-		"BsEchoUserLocator": "includes/UserLocator.php"
+		"BsEmailBatch": "includes/BsEmailBatch.php"
 	},
 	"Hooks": {
 		"ArticleDeleteComplete": [
@@ -44,27 +40,18 @@
 		"TitleMoveComplete": [
 			"\\BlueSpice\\EchoConnector\\Hook\\TitleMoveComplete\\NotifyUsers::callback"
 		],
-		"EchoGetBundleRules": "EchoConnectorHooks::onEchoGetBundleRules",
-		"BeforePageDisplay": "EchoConnectorHooks::onBeforePageDisplay"
-	},
-	"ResourceModules": {
-		"ext.bluespice.echoconnector.fixer": {
-			"scripts": [
-				"echo.loader.fixer.js"
-			],
-			"dependencies": [
-				"ext.echo.ui",
-				"ext.echo.ui.desktop"
-			]
-		},
-		"ext.bluespice.echoconnector.fixer.styles": {
-			"styles": "echo.special.fixes.css",
-			"position": "top"
-		}
-	},
-	"ResourceFileModulePaths": {
-		"localBasePath": "resources",
-		"remoteExtPath": "BlueSpiceEchoConnector/resources"
+		"PageContentSaveComplete": [
+			"\\BlueSpice\\EchoConnector\\Hook\\PageContentSaveComplete\\NotifyUsers::callback"
+		],
+		"BSUserManagerAfterAddUser": [
+			"\\BlueSpice\\EchoConnector\\Hook\\BSUserManagerAfterAddUser\\NotifyUsers::callback"
+		],
+		"EchoGetNotificationTypes": [
+			"\\BlueSpice\\EchoConnector\\Hook\\EchoGetNotificationTypes\\GetNotificationTypesForEvent::callback"
+		],
+		"EchoGetBundleRules": [
+			"\\BlueSpice\\EchoConnector\\Hook\\EchoGetBundleRules\\GetBundleRules::callback"
+		]
 	},
 	"load_composer_autoloader": true,
 	"manifest_version": 2

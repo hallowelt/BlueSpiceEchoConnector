@@ -35,7 +35,8 @@ class Extension {
 				'web-body-params' => [
 					'userlink', 'username', 'username', 'user'
 				],
-				'extra-params' => array ()
+				'extra-params' => array (),
+				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
 
@@ -60,7 +61,8 @@ class Extension {
 				'web-body-params' => array (
 					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
 				),
-				'extra-params' => array ()
+				'extra-params' => array (),
+				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
 
@@ -85,7 +87,8 @@ class Extension {
 				'web-body-params' => array (
 					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
 				),
-				'extra-params' => array ()
+				'extra-params' => array (),
+				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
 
@@ -110,7 +113,8 @@ class Extension {
 				'web-body-params' => array (
 					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
 				),
-				'extra-params' => array ()
+				'extra-params' => array (),
+				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
 
@@ -136,12 +140,49 @@ class Extension {
 				'web-body-params' => array (
 					'title', 'agent', 'newtitle', 'difflink', 'realname'
 				),
-				'extra-params' => array ()
+				'extra-params' => array (),
+				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
 	}
 
 	public static function getUsersToNotify( $event ) {
-		
+		// Everyone deserves to know when something happens
+		// on their user talk page
+		$dbr = wfGetDB ( DB_SLAVE );
+		switch ( $event->getType () ) {
+			case 'bs-adduser':
+			//Get admin users
+			$resSysops = $dbr->select ( "user_groups", "ug_user", 'ug_group = "sysop"' );
+			foreach ( $resSysops as $row ) {
+				$user = User::newFromId ( $row->ug_user );
+				$users[ $user->getId () ] = $user;
+			}
+			break;
+			case 'bs-create':
+			case 'bs-edit':
+			case 'bs-move':
+			case 'bs-delete':
+				//We need to pre-filter for the subscription user setting here.
+				//Otherwise a large user base (2000+) will result in bad performance
+				$resUser = $dbr->select(
+					"user_properties",
+					"DISTINCT up_user",
+					[
+						"up_property" => [
+							"echo-subscriptions-web-bs-page-actions-cat",
+							"echo-subscriptions-email-bs-page-actions-cat"
+						],
+						"up_value" => 1
+					]
+				);
+				foreach ( $resUser as $row ) {
+					$user = User::newFromId ( $row->up_user );
+					$users[ $user->getId () ] = $user;
+				}
+			break;
+		}
+
+		return true;
 	}
 }
