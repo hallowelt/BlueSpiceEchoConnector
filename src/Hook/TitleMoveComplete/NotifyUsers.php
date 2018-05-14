@@ -6,12 +6,10 @@ use BlueSpice\Hook\TitleMoveComplete;
 class NotifyUsers extends TitleMoveComplete {
 	protected function doProcess() {
 		if( $this->user->isAllowed( 'bot' ) ) {
-			return true;
+			//return true;
 		}
 
-		$notificationsManager = \BlueSpice\Services::getInstance()->getService(
-			'BSNotifications'
-		);
+		$notificationsManager = \BlueSpice\Services::getInstance()->getBSNotificationManager();
 
 		$notifier = $notificationsManager->getNotifier( 'bsecho' );
 
@@ -23,7 +21,7 @@ class NotifyUsers extends TitleMoveComplete {
 			[
 				'agent' => $this->user,
 				'title' => $this->title,
-				'extra' => [
+				'extra-params' => [
 					'newtitle' => $this->newTitle,
 					'realname' => $realname
 				]

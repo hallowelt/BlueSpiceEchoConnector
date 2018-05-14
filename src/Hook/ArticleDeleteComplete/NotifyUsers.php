@@ -3,30 +3,29 @@
 namespace BlueSpice\EchoConnector\Hook\ArticleDeleteComplete;
 use BlueSpice\Hook\ArticleDeleteComplete;
 
-class NotifyUsersOnDelete extends ArticleDeleteComplete {
+class NotifyUsers extends ArticleDeleteComplete {
 	protected function doProcess() {
 		if( $this->user->isAllowed( 'bot' ) ) {
-			return true;
+			//return true;
 		}
 
-		$notificationsManager = \BlueSpice\Services::getInstance()->getService(
-			'BSNotifications'
-		);
+		$notificationsManager = \BlueSpice\Services::getInstance()->getBSNotificationManager();
 
 		$notifier = $notificationsManager->getNotifier( 'bsecho' );
 
 		$realname = \BlueSpice\Services::getInstance()->getBSUtilityFactory()
 			->getUserHelper()->getDisplayName( $this->user );
 
+		//Since at this point Title object for this page no longer ::exists(),
+		//we need to pass it inside extra-params to avoid automatic deletion
 		$notification = $notifier->getNotificationObject(
 			'bs-delete',
 			[
 				'agent' => $this->user,
-				'title' => $this->wikipage->getTitle(),
-				'extra' => [
+				'extra-params' => [
 					'deletereason' => $this->reason,
-					'title' => $this->wikipage->getTitle()->getText(),
-					'realname' => $realname
+					'realname' => $realname,
+					'title' => $this->wikipage->getTitle()
 				]
 			]
 		);

@@ -2,9 +2,44 @@
 
 namespace BlueSpice\EchoConnector;
 
+use BlueSpice\EchoConnector\Formatter\NotificationFormatter;
+
 class EchoEventPresentationModel extends \EchoEventPresentationModel {
+	protected $paramParser;
+	protected $echoNotifications;
+
+	protected $distributionType;
+	protected $emailFormat;
+
+	public function __construct( \EchoEvent $event, $language, \User $user, $distributionType ) {
+		global $wgEchoNotifications;
+
+		parent::__construct( $event, $language, $user, $distributionType );
+
+		$this->distributionType = $distributionType;
+		$this->mailFormat = \EchoEmailFormat::PLAIN_TEXT;
+
+		$this->paramParser = new \BlueSpice\EchoConnector\Formatter\ParamParser( $event );
+		$this->echoNotifications = &$wgEchoNotifications;
+	}
+
+	//There is not way to change distribution type after object
+	//has been contstructed, and its always constructed with 'web' type
+	public function setDistributionType( $type ) {
+		$this->distributionType = $type;
+		$this->paramParser->setDistributionType( $type );
+	}
+
+	public function setEmailFormat( $format ) {
+		$this->emailFormat = $format;
+		$this->paramParser->setEmailFormat( $format );
+	}
 
 	public function canRender() {
+		//Force rendering if explicitly specified
+		if( isset( $this->echoNotifications[$this->type]['forceRender'] ) ) {
+			return true;
+		}
 		return (bool) $this->event->getTitle();
 	}
 
@@ -13,59 +48,55 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 	}
 
 	public function getIcon() {
-		global $wgEchoNotifications;
-		if (isset($wgEchoNotifications[$this->type]['icon'])) {
-			return $wgEchoNotifications[$this->type]['icon'];
+		if ( isset( $this->echoNotifications[$this->type]['icon'] ) ) {
+			return $this->echoNotifications[$this->type]['icon'];
 		}
-		return $this->getFormatter($wgEchoNotifications[$this->type])->icon;
+
+		return 'placeholder';
 	}
 
 	public function getHeaderMessage() {
-		$aContent = $this->getHeaderMessageContent();
-		$oMsg = $this->msg($aContent['key']);
+		$content = $this->getHeaderMessageContent();
+		$msg = $this->msg($content['key']);
 
 		if ($this->isBundled()) {
-			if ($aContent['bundle-key']) {
-				$oMsg = $this->msg($aContent['bundle-key']);
-				$oMsg->params($this->getBundleCount());
+			if ($content['bundle-key']) {
+				$msg = $this->msg($content['bundle-key']);
+				$msg->params($this->getBundleCount());
 			}
 		}
 
-		$oFormatter = $this->getFormatter();
-		$aParams = $aContent['params'];
-		if ($this->isBundled()) {
-			$aParams = $aContent['bundle-params'];
-		}
-		if (empty($aParams)) {
-			return $oMsg;
+		$params = $content['params'];
+		if( $this->isBundled() ) {
+			$params = $content['bundle-params'];
 		}
 
-		foreach ($aParams as $param) {
-			$oFormatter->processParam(
-					$this->event, $param, $oMsg, $this->event->getAgent()
-			);
+		if( empty( $params ) ) {
+			return $msg;
 		}
 
-		return $oMsg;
+		foreach( $params as $param ) {
+			$this->paramParser->parseParam( $msg, $param );
+		}
+
+		return $msg;
 	}
 
 	public function getBodyMessage() {
-		$aContent = $this->getBodyMessageContent();
-		if (!$aContent['key']) {
+		$content = $this->getBodyMessageContent();
+		if( !$content['key'] ) {
 			return false;
 		}
-		$oMsg = $this->msg($aContent['key']);
-		if (empty($aContent['params'])) {
-			return $oMsg;
+		$msg = $this->msg( $content['key'] );
+		if( empty( $content['params'] ) ) {
+			return $msg;
 		}
 
-		$oFormatter = $this->getFormatter();
-		foreach ($aContent['params'] as $param) {
-			$oFormatter->processParam(
-					$this->event, $param, $oMsg, $this->event->getAgent()
-			);
+		foreach( $content['params'] as $param ) {
+			$this->paramParser->parseParam( $msg, $param );
 		}
-		return $oMsg;
+
+		return $msg;
 	}
 
 	public function getCompactHeaderMessage() {
@@ -75,43 +106,69 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 		return $msg;
 	}
 
-	public function getFormatter() {
-		global $wgEchoNotifications;
-		return new BsNotificationsFormatter(
-				$wgEchoNotifications[$this->type]
-		);
-	}
-
+	/**
+	 * Gets the URL to the title that notification is about
+	 *
+	 * @return string|false if no \Title is supplied
+	 */
 	public function getPrimaryLink() {
-		return $this->event->getTitle() ? array(
-			'url' => $this->event->getTitle()->getFullURL(),
-			'label' => $this->event->getTitle()->getText()
-				) : false;
+		$title = $this->event->getTitle();
+		if( $title instanceof \Title == false ) {
+			return false;
+		}
+
+		return [
+			'url' => $title->getFullURL(),
+			'label' => $title->getPrefixedText()
+		];
 	}
 
+	/**
+	 * Gets appropriate messages keys and params
+	 * for header message
+	 *
+	 * @return array
+	 */
 	public function getHeaderMessageContent() {
-		global $wgEchoNotifications;
+		$bundleKey = '';
+		$bundleParams = [];
+		if( isset( $this->echoNotifications[$this->type]['bundle'] ) ) {
+			$bundleKey = $this->echoNotifications[$this->type]['bundle']['bundle-message'];
+			$bundleParams = $this->echoNotificationss[$this->type]['bundle']['bundle-params'];
+		}
 
-		$sBundleKey = '';
-		$aBundleParams = array();
-		if (isset($wgEchoNotifications[$this->type]['bundle'])) {
-			$sBundleKey = $wgEchoNotifications[$this->type]['bundle']['bundle-message'];
-			$aBundleParams = $wgEchoNotifications[$this->type]['bundle']['bundle-params'];
+		$headerKey = $this->echoNotifications[$this->type]['title-message'];
+		$headerParams = $this->echoNotifications[$this->type]['title-params'];
+		if( $this->distributionType == 'email' ) {
+			$headerKey = $this->echoNotifications[$this->type]['email-subject-message'];
+			$headerParams = $this->echoNotifications[$this->type]['email-subject-params'];
+		}
+
+		return [
+			'key' => $headerKey,
+			'params' => $headerParams,
+			'bundle-key' => $bundleKey,
+			'bundle-params' => $bundleParams
+		];
+	}
+
+	/**
+	 * Gets appropriate message key and params for
+	 * web notification message
+	 *
+	 * @return array
+	 */
+	public function getBodyMessageContent() {
+		if( $this->distributionType == 'email' ) {
+			return array(
+				'key' => $this->echoNotifications[$this->type]['email-body-batch-message'],
+				'params' => $this->echoNotifications[$this->type]['email-body-batch-params']
+			);
 		}
 
 		return array(
-			'key' => $wgEchoNotifications[$this->type]['title-message'],
-			'params' => $wgEchoNotifications[$this->type]['title-params'],
-			'bundle-key' => $sBundleKey,
-			'bundle-params' => $aBundleParams
-		);
-	}
-
-	public function getBodyMessageContent() {
-		global $wgEchoNotifications;
-		return array(
-			'key' => $wgEchoNotifications[$this->type]['web-body-message'],
-			'params' => $wgEchoNotifications[$this->type]['web-body-params']
+			'key' => $this->echoNotifications[$this->type]['web-body-message'],
+			'params' => $this->echoNotifications[$this->type]['web-body-params']
 		);
 	}
 

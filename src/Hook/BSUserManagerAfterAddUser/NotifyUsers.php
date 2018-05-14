@@ -7,20 +7,20 @@ use BlueSpice\UserManager\Hook\BSUserManagerAfterAddUser;
 class NotifyUsers extends BSUserManagerAfterAddUser {
 	
 	protected function doProcess() {
-		$notificationsManager = \BlueSpice\Services::getInstance()->getService(
-			'BSNotifications'
-		);
+		$notificationsManager = \BlueSpice\Services::getInstance()->getBSNotificationManager();
 
 		$notifier = $notificationsManager->getNotifier( 'bsecho' );
+
+		$realname = \BlueSpice\Services::getInstance()->getBSUtilityFactory()
+			->getUserHelper()->getDisplayName( $this->user );
 
 		$notification = $notifier->getNotificationObject(
 			'bs-adduser',
 			[
-				'agent' => $this->user,
-				'extra' => [
-					'username' => $this->user->getName(),
-					'userlink' => $this->user->getUserPage()->getFullUrl(),
-					'user' => $this->user->getName()
+				'agent' => $this->performer,
+				'extra-params' => [
+					'realname' => $realname,
+					'user' => $this->user
 				]
 			]
 		);

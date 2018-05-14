@@ -4,7 +4,7 @@ namespace BlueSpice\EchoConnector\Notification;
 
 class EchoNotification implements \BlueSpice\INotification {
 	protected $key;
-	protected $title;
+	protected $title = null;
 	protected $agent;
 	protected $audience = [];
 	protected $extra = [];
@@ -13,8 +13,6 @@ class EchoNotification implements \BlueSpice\INotification {
 		$this->key = $key;
 		if( isset( $params['title'] ) && $params['title'] instanceof \Title ) {
 			$this->title = $params['title'];
-		} else {
-			$this->setDummyTitle();
 		}
 
 		$this->agent = $params['agent'];
@@ -70,9 +68,5 @@ class EchoNotification implements \BlueSpice\INotification {
 	protected function addUsersFromGroupsToAudience( $groups ) {
 		$users = \BsGroupHelper::getUserInGroups( $groups );
 		$this->addUsersToAudience( $users );
-	}
-
-	protected function setDummyTitle() {
-		$this->title = \Title::newFromText( 'BlueSpiceEchoConnector' );
 	}
 }

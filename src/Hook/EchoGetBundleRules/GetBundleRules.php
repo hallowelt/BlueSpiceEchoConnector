@@ -7,10 +7,10 @@ use \BlueSpice\EchoConnector\Hook\EchoGetBundleRules;
 class GetBundleRules extends EchoGetBundleRules {
 	
 	protected function doProcess() {
-		$bundleString = $this->event->getType ();
+		$this->bundleString = $this->event->getType();
 		$title = $this->event->getTitle();
 		if ( $title instanceof \Title ) {
-			$bundleString .= '-' . $title->getNamespace () . '-' . $title->getDBkey ();
+			$this->bundleString .= '-' . $title->getNamespace () . '-' . $title->getDBkey ();
 		}
 
 		return true;

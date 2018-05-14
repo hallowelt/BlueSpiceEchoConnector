@@ -13,11 +13,14 @@
 	"attributes": {
 		"BlueSpiceFoundation": {
 			"Notifiers": {
-				"bsecho": "\\BlueSpice\\EchoConnector\\Notifier\\EchoNotifier"
+				"bsecho": "\\BlueSpice\\EchoConnector\\Notifier\\NotificationsEchoNotifier"
 			},
 			"NotificationRegistrationFunctions": [
 				"\\BlueSpice\\EchoConnector\\Extension::registerNotifications"
 			]
+		},
+		"BlueSpiceEchoConnector": {
+			"ParamParsers": {}
 		}
 	},
 	"MessagesDirs": {
@@ -25,17 +28,9 @@
 			"i18n"
 		]
 	},
-	"AutoloadClasses": {
-		"BsEchoEmailSingle": "includes/formatters/BsEchoEmailSingle.php",
-		"BsEchoTextEmailFormatter": "includes/formatters/BsEchoTextEmailFormatter.php",
-		"BsEchoTextEmailDecorator": "includes/formatters/BsEchoTextEmailDecorator.php",
-		"BsEchoHTMLEmailFormatter": "includes/formatters/BsEchoHTMLEmailFormatter.php",
-		"BsEchoEmailDigest": "includes/formatters/BsEchoEmailDigest.php",
-		"BsEmailBatch": "includes/BsEmailBatch.php"
-	},
 	"Hooks": {
 		"ArticleDeleteComplete": [
-			"\\BlueSpice\\EchoConnector\\Hook\\ArticleDeleteComplete\\NotifyUsersOnDelete::callback"
+			"\\BlueSpice\\EchoConnector\\Hook\\ArticleDeleteComplete\\NotifyUsers::callback"
 		],
 		"TitleMoveComplete": [
 			"\\BlueSpice\\EchoConnector\\Hook\\TitleMoveComplete\\NotifyUsers::callback"

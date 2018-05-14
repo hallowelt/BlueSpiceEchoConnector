@@ -7,14 +7,15 @@ use BlueSpice\Hook\PageContentSaveComplete;
 class NotifyUsers extends PageContentSaveComplete {
 	
 	protected function doProcess() {
-		if ( $this->user->isAllowed ( 'bot' ) )
+		if ( $this->user->isAllowed( 'bot' ) ) {
+			//return true;
+		}
+			
+		if ( $this->wikipage->getTitle()->getNamespace() === NS_USER_TALK ) {
 			return true;
-		if ( $this->wikipage->getTitle ()->getNamespace () === NS_USER_TALK )
-			return true;
+		}
 
-		$notificationsManager = \BlueSpice\Services::getInstance()->getService(
-			'BSNotifications'
-		);
+		$notificationsManager = \BlueSpice\Services::getInstance()->getBSNotificationManager();
 
 		$notifier = $notificationsManager->getNotifier( 'bsecho' );
 
@@ -27,7 +28,7 @@ class NotifyUsers extends PageContentSaveComplete {
 				[
 					'agent' => $this->user,
 					'title' => $this->wikipage->getTitle(),
-					'extra' => [
+					'extra-params' => [
 						'summary' => $this->summary,
 						'titlelink' => true,
 						'realname' => $realname,
@@ -53,7 +54,7 @@ class NotifyUsers extends PageContentSaveComplete {
 			[
 				'agent' => $this->user,
 				'title' => $this->wikipage->getTitle(),
-				'extra' => [
+				'extra-params' => [
 					'summary' => $this->summary,
 					'titlelink' => true,
 					'realname' => $realname,

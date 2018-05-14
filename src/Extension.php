@@ -3,7 +3,7 @@
 namespace BlueSpice\EchoConnector;
 
 class Extension {
-	public static function registerNotifications( \BlueSpice\Notifications $notificationsManager ) {
+	public static function registerNotifications( \BlueSpice\NotificationManager $notificationsManager ) {
 		$echoNotifier = $notificationsManager->getNotifier( 'bsecho' );
 		$echoNotifier->registerNotificationCategory(
 			'bs-admin-cat',
@@ -33,7 +33,7 @@ class Extension {
 				],
 				'web-body-message' => 'bs-notifications-email-addaccount-body',
 				'web-body-params' => [
-					'userlink', 'username', 'username', 'user'
+					'realname', 'username'
 				],
 				'extra-params' => array (),
 				'user-locators' => [self::class . '::getUsersToNotify']
@@ -57,9 +57,9 @@ class Extension {
 				'email-body-params' => array (
 					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
 				),
-				'web-body-message' => 'bs-notifications-email-edit-body',
+				'web-body-message' => 'bs-notifications-web-edit-body',
 				'web-body-params' => array (
-					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
+					'title', 'agent', 'realname'
 				),
 				'extra-params' => array (),
 				'user-locators' => [self::class . '::getUsersToNotify']
@@ -83,9 +83,9 @@ class Extension {
 				'email-body-params' => array (
 					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
 				),
-				'web-body-message' => 'bs-notifications-email-create-body',
+				'web-body-message' => 'bs-notifications-web-create-body',
 				'web-body-params' => array (
-					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
+					'title', 'agent', 'realname'
 				),
 				'extra-params' => array (),
 				'user-locators' => [self::class . '::getUsersToNotify']
@@ -107,13 +107,17 @@ class Extension {
 				),
 				'email-body' => 'bs-notifications-email-delete-body',
 				'email-body-params' => array (
-					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
+					'title', 'agent', 'deletereason', 'titlelink', 'difflink', 'realname'
 				),
-				'web-body-message' => 'bs-notifications-email-delete-body',
+				'web-body-message' => 'bs-notifications-web-delete-body',
 				'web-body-params' => array (
-					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
+					'title', 'agent', 'realname', 'deletereason'
 				),
-				'extra-params' => array (),
+				'extra-params' => array (
+					//usually only existing titles can produce notifications
+					//we do not have a title after its deleted
+					'forceRender' => true
+				),
 				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
@@ -126,19 +130,19 @@ class Extension {
 				'category' => 'bs-page-actions-cat',
 				'summary-message' => 'bs-notifications-move',
 				'summary-params' => array (
-					'title', 'agent'
+					'title'
 				),
 				'email-subject' => 'bs-notifications-email-move-subject',
 				'email-subject-params' => array (
-					'title', 'agent', 'realname'
+					'title', 'agent', 'newpage', 'realname'
 				),
 				'email-body' => 'bs-notifications-email-move-body',
 				'email-body-params' => array (
-					'title', 'agent', 'newtitle', 'difflink', 'realname'
+					'title', 'agent', 'newtitle', 'newtitlelink', 'realname'
 				),
-				'web-body-message' => 'bs-notifications-email-move-body',
+				'web-body-message' => 'bs-notifications-web-move-body',
 				'web-body-params' => array (
-					'title', 'agent', 'newtitle', 'difflink', 'realname'
+					'title', 'agent', 'newtitle', 'realname'
 				),
 				'extra-params' => array (),
 				'user-locators' => [self::class . '::getUsersToNotify']
@@ -155,7 +159,7 @@ class Extension {
 			//Get admin users
 			$resSysops = $dbr->select ( "user_groups", "ug_user", 'ug_group = "sysop"' );
 			foreach ( $resSysops as $row ) {
-				$user = User::newFromId ( $row->ug_user );
+				$user = \User::newFromId ( $row->ug_user );
 				$users[ $user->getId () ] = $user;
 			}
 			break;
@@ -176,13 +180,14 @@ class Extension {
 						"up_value" => 1
 					]
 				);
+
 				foreach ( $resUser as $row ) {
-					$user = User::newFromId ( $row->up_user );
+					$user = \User::newFromId ( $row->up_user );
 					$users[ $user->getId () ] = $user;
 				}
 			break;
 		}
 
-		return true;
+		return $users;
 	}
 }

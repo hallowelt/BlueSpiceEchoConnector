@@ -2,105 +2,109 @@
 
 namespace BlueSpice\EchoConnector\Notifier;
 
-use \BlueSpice\EchoConnector\Notification\EchoNotification;
-use \BlueSpice\EchoConnector\EchoEventPresentationModel;
-use \BlueSpice\EchoConnector\NotificationFormatter;
+use BlueSpice\EchoConnector\Formatter\EchoPlainTextEmailFormatter as BsPlainTextEmailFormatter;
+use BlueSpice\EchoConnector\Formatter\EchoHTMLEmailFormatter as BsHtmlEmailFormatter;
 
-class EchoNotifier implements \BlueSpice\INotifier {
-	protected $echoNotifications;
-	protected $echoNotificationCategories;
-	
-	public function getNotificationObject( $key, $params ) {
-		return new EchoNotification( $key, $params );
+/**
+ * Override of default EchoNotifier - copy-paste from there
+ * All this because Echo uses hard-coded formatters for mails
+ */
+class EchoNotifier extends \EchoNotifier {
+	public static function notifyWithEmail( $user, $event ) {
+		global $wgEnableEmail;
+
+		if ( !$wgEnableEmail ) {
+			return false;
+		}
+		// No valid email address or email notification
+		if ( !$user->isEmailConfirmed() || $user->getOption( 'echo-email-frequency' ) < 0 ) {
+			return false;
+		}
+
+		// Final check on whether to send email for this user & event
+		if ( !\Hooks::run( 'EchoAbortEmailNotification', [ $user, $event ] ) ) {
+			return false;
+		}
+
+		$attributeManager = \EchoAttributeManager::newFromGlobalVars();
+		$userEmailNotifications = $attributeManager->getUserEnabledEvents( $user, 'email' );
+		// See if the user wants to receive emails for this category or the user is eligible to receive this email
+		if ( in_array( $event->getType(), $userEmailNotifications ) ) {
+			global $wgEchoEnableEmailBatch, $wgEchoNotifications, $wgNotificationSender, $wgNotificationReplyName;
+
+			$priority = $attributeManager->getNotificationPriority( $event->getType() );
+
+			$bundleString = $bundleHash = '';
+
+			// We should have bundling for email digest as long as either web or email bundling is on, for example, talk page
+			// email bundling is off, but if a user decides to receive email digest, we should bundle those messages
+			if ( !empty( $wgEchoNotifications[$event->getType()]['bundle']['web'] ) || !empty( $wgEchoNotifications[$event->getType()]['bundle']['email'] ) ) {
+				\Hooks::run( 'EchoGetBundleRules', [ $event, &$bundleString ] );
+			}
+			if ( $bundleString ) {
+				$bundleHash = md5( $bundleString );
+			}
+
+			\MWEchoEventLogging::logSchemaEcho( $user, $event, 'email' );
+
+			// email digest notification ( weekly or daily )
+			if ( $wgEchoEnableEmailBatch && $user->getOption( 'echo-email-frequency' ) > 0 ) {
+				// always create a unique event hash for those events don't support bundling
+				// this is mainly for group by
+				if ( !$bundleHash ) {
+					$bundleHash = md5( $event->getType() . '-' . $event->getId() );
+				}
+				\MWEchoEmailBatch::addToQueue( $user->getId(), $event->getId(), $priority, $bundleHash );
+
+				return true;
+			}
+
+			// instant email notification
+			$toAddress = \MailAddress::newFromUser( $user );
+			$fromAddress = new \MailAddress( $wgNotificationSender, \EchoHooks::getNotificationSenderName() );
+			$replyAddress = new \MailAddress( $wgNotificationSender, $wgNotificationReplyName );
+			// Since we are sending a single email, should set the bundle hash to null
+			// if it is set with a value from somewhere else
+			$event->setBundleHash( null );
+			$email = self::generateEmail( $event, $user );
+			if ( !$email ) {
+				return false;
+			}
+
+			$subject = $email['subject'];
+			$body = $email['body'];
+			$options = [ 'replyTo' => $replyAddress ];
+
+			\UserMailer::send( $toAddress, $fromAddress, $subject, $body, $options );
+			\MWEchoEventLogging::logSchemaEchoMail( $user, 'single' );
+		}
+
+		return true;
 	}
+	/**
+	 * @param EchoEvent $event
+	 * @param User $user
+	 * @return bool|array An array of 'subject' and 'body', or false if things went wrong
+	 */
+	private static function generateEmail( \EchoEvent $event, \User $user ) {
+		$emailFormat = \MWEchoNotifUser::newFromUser( $user )->getEmailFormat();
+		$lang = wfGetLangObj( $user->getOption( 'language' ) );
+		$formatter = new BsPlainTextEmailFormatter( $user, $lang );
+		$content = $formatter->format( $event );
+		if ( !$content ) {
+			return false;
+		}
 
-	public function init() {
-		global $wgEchoNotifications, $wgEchoNotificationCategories;
+		if ( $emailFormat === \EchoEmailFormat::HTML ) {
+			$htmlEmailFormatter = new BsHtmlEmailFormatter( $user, $lang );
+			$htmlContent = $htmlEmailFormatter->format( $event );
+			$multipartBody = [
+				'text' => $content['body'],
+				'html' => $htmlContent['body']
+			];
+			$content['body'] = $multipartBody;
+		}
 
-		$this->echoNotifications = $wgEchoNotifications;
-		$this->echoNotificationCategories = $wgEchoNotificationCategories;
+		return $content;
 	}
-
-	public function notify( $notification ) {
-		if( $notification instanceof EchoNotification == false ) {
-			return;
-		}
-
-		$echoNotif = [
-			'type' => $notification->getKey(),
-			'agent' => $notification->getUser(),
-			'title' => $notification->getTitle(),
-			'extra' => $notification->getParams()
-		];
-
-		if( !empty( $notification->getAudience() ) ) {
-			$echoNotif['extra']['affected-users'] = $notification->getAudience();
-		}
-
-		\EchoEvent::create ( $echoNotif );
-
-		return \Status::newGood();
-	}
-
-	public function registerNotification($key, $params) {
-		$extraParams = [];
-		if ( !empty( $params[ 'extra-params' ] ) ) {
-			$extraParams = $params[ 'extra-params' ];
-		}
-
-		if ( !isset ( $extraParams[ 'formatter-class' ] ) ) {
-			//$extraParams[ 'formatter-class' ] = NotificationFormatter::class;
-		}
-		if ( !isset ( $extraParams[ 'presentation-model' ] ) ) {
-			$extraParams[ 'presentation-model' ] = EchoEventPresentationModel::class;
-		}
-
-		if ( isset ( $params[ 'icon' ] ) ) {
-			$extraParams[ 'icon' ] = $params[ 'icon' ];
-		}
-
-		if( !isset( $params['user-locators'] ) || !is_array( $params['user-locators'] ) ) {
-			$params['user-locators'] = [self::class . '::setUsersToNotify'];
-		} else {
-			$params['user-locators'][] = self::class . '::setUsersToNotify';
-		}
-
-		$this->echoNotifications[$key] = $extraParams + [
-			'category' => $params[ 'category' ],
-			'title-message' => $params[ 'summary-message' ],
-			'title-params' => $params[ 'summary-params' ],
-			'web-body-message' => $params[ 'web-body-message' ],
-			'web-body-params' => $params[ 'web-body-params' ],
-			'email-subject-message' => $params[ 'email-subject' ],
-			'email-subject-params' => $params[ 'email-subject-params' ],
-			'email-body-batch-message' => $params[ 'email-body' ],
-			'email-body-batch-params' => $params[ 'email-body-params' ],
-			'user-locators' => $params['user-locators']
-		];
-	}
-
-	public function registerNotificationCategory( $key, $params ) {
-		$this->echoNotificationCategories[$key] = $params;
-	}
-
-	public function unRegisterNotification( $key ) {
-		if( isset( $this->echoNotifications[$key] ) ) {
-			unset( $this->echoNotifications[$key] );
-		}
-	}
-
-	public static function setUsersToNotify( $event ) {
-		$users = $event->getExtraParam( 'affected-users', [] );
-
-		$res = [];
-		foreach( $users as $user ) {
-			$res[$user] = \User::newFromId( $user );
-		}
-
-		return $res;
-	}
-
-	public static function filterUsersToNotify( $event ) {
-	}
-
 }
