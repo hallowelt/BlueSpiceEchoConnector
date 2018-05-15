@@ -42,7 +42,6 @@ abstract class EchoGetBundleRules extends \BlueSpice\Hook {
 	public function __construct( $context, $config, $event, &$bundleString ) {
 		parent::__construct( $context, $config );
 
-		$this->user = $user;
 		$this->event = $event;
 		$this->bundleString = &$bundleString;
 	}

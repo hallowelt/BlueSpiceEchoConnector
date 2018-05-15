@@ -144,12 +144,22 @@ class Extension {
 				'web-body-params' => array (
 					'title', 'agent', 'newtitle', 'realname'
 				),
-				'extra-params' => array (),
+				'extra-params' => array(
+					'bundle' => [
+						'web' => true,
+						'email' => true,
+						'expandable' => true,
+						'bundle-message' => 'bs-notifications-move-bundle',
+						'bundle-params' => []
+					]
+				),
 				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
 	}
 
+	//This seems like a shootgun approach, not everyone should
+	//be notified of every change on every page
 	public static function getUsersToNotify( $event ) {
 		// Everyone deserves to know when something happens
 		// on their user talk page

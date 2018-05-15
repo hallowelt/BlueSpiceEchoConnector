@@ -60,9 +60,9 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 		$msg = $this->msg($content['key']);
 
 		if ($this->isBundled()) {
-			if ($content['bundle-key']) {
-				$msg = $this->msg($content['bundle-key']);
-				$msg->params($this->getBundleCount());
+			if ( $content['bundle-key'] ) {
+				$msg = $this->msg( $content['bundle-key'] );
+				$msg->params( $this->getBundleCount() );
 			}
 		}
 
@@ -134,7 +134,7 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 		$bundleParams = [];
 		if( isset( $this->echoNotifications[$this->type]['bundle'] ) ) {
 			$bundleKey = $this->echoNotifications[$this->type]['bundle']['bundle-message'];
-			$bundleParams = $this->echoNotificationss[$this->type]['bundle']['bundle-params'];
+			$bundleParams = $this->echoNotifications[$this->type]['bundle']['bundle-params'];
 		}
 
 		$headerKey = $this->echoNotifications[$this->type]['title-message'];
