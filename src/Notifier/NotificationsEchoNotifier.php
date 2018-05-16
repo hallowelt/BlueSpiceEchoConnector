@@ -58,7 +58,7 @@ class NotificationsEchoNotifier implements \BlueSpice\INotifier {
 		return \Status::newGood();
 	}
 
-	public function registerNotification($key, $params) {
+	public function registerNotification( $key, $params ) {
 		$extraParams = [];
 		if ( !empty( $params[ 'extra-params' ] ) ) {
 			$extraParams = $params[ 'extra-params' ];
@@ -84,10 +84,10 @@ class NotificationsEchoNotifier implements \BlueSpice\INotifier {
 			'title-params' => $params[ 'summary-params' ],
 			'web-body-message' => $params[ 'web-body-message' ],
 			'web-body-params' => $params[ 'web-body-params' ],
-			'email-subject-message' => $params[ 'email-subject' ],
+			'email-subject-message' => $params[ 'email-subject-message' ],
 			'email-subject-params' => $params[ 'email-subject-params' ],
-			'email-body-batch-message' => $params[ 'email-body' ],
-			'email-body-batch-params' => $params[ 'email-body-params' ],
+			'email-body-message' => $params[ 'email-body-message' ],
+			'email-body-params' => $params[ 'email-body-params' ],
 			'user-locators' => $params['user-locators']
 		];
 	}

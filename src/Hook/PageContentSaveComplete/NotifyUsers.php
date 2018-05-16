@@ -22,17 +22,18 @@ class NotifyUsers extends PageContentSaveComplete {
 		$realname = \BlueSpice\Services::getInstance()->getBSUtilityFactory()
 			->getUserHelper()->getDisplayName( $this->user );
 
+		$title = $this->wikipage->getTitle();
+
 		if ( $this->flags & EDIT_NEW ) {
 			$notification = $notifier->getNotificationObject(
 				'bs-create',
 				[
 					'agent' => $this->user,
-					'title' => $this->wikipage->getTitle(),
+					'title' => $title,
 					'extra-params' => [
 						'summary' => $this->summary,
 						'titlelink' => true,
-						'realname' => $realname,
-						'difflink' => ''
+						'realname' => $realname
 					]
 				]
 			);
@@ -41,25 +42,32 @@ class NotifyUsers extends PageContentSaveComplete {
 			return true;
 		}
 
-		$diffParams = array ( 'diffparams' => array () );
+		$diffParams = [];
 		if ( is_object ( $this->revision ) ) {
-			$diffParams[ 'diffparams' ][ 'diff' ] = $this->revision->getId ();
+			$diffParams[ 'diff' ] = $this->revision->getId ();
 			if ( is_object ( $this->revision->getPrevious () ) ) {
-				$diffParams[ 'diffparams' ][ 'oldid' ] = $this->revision->getPrevious ()->getId ();
+				$diffParams[ 'oldid' ] = $this->revision->getPrevious()->getId ();
 			}
 		}
+
+		$diffUrl = $title->getFullURL( [
+			'type' => 'revision',
+			'diff' => $diffParams['diff'],
+			'oldid' => $diffParams['oldid']
+		] );
 
 		$notification = $notifier->getNotificationObject(
 			'bs-edit',
 			[
 				'agent' => $this->user,
-				'title' => $this->wikipage->getTitle(),
+				'title' => $title,
 				'extra-params' => [
 					'summary' => $this->summary,
 					'titlelink' => true,
 					'realname' => $realname,
-					'difflink' => $diffParams,
-					'agentlink' => true
+					'secondary-links' => [
+						'difflink' => $diffUrl
+					]
 				]
 			]
 		);

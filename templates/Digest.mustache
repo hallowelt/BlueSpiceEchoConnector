@@ -1,0 +1,42 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<style>
+			body {
+				background-color: #fcfcfc;
+			}
+
+			.mail-container {
+				width: 500px;
+				margin-left: auto;
+				margin-right: auto;
+				background-color: #aeaeae;
+				padding: 30px;
+			}
+
+			.icon {
+				float: left;
+				padding-right: 20px;
+			}
+			.footer {
+				text-align: center;
+			}
+			.digest-list {
+				margin-bottom: 20px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class='mail-container'>
+			<span>{{{intro}}}</span>
+			<div class='digest-list'>
+			{{{digest_list}}}
+			</div>
+			<div class='actions'>
+				{{{actions}}}
+			</div>
+		</div>
+		<div class='footer'>{{{footer}}}</div>
+	</body>
+</html>

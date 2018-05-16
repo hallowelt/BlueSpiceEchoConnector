@@ -23,11 +23,11 @@ class Extension {
 				'summary-params' => [
 					'username'
 				],
-				'email-subject' => 'bs-notifications-email-addaccount-subject',
+				'email-subject-message' => 'bs-notifications-email-addaccount-subject',
 				'email-subject-params' => [
 					'username', 'username'
 				],
-				'email-body' => 'bs-notifications-email-addaccount-body',
+				'email-body-message' => 'bs-notifications-email-addaccount-body',
 				'email-body-params' => [
 					'userlink', 'username', 'username', 'user'
 				],
@@ -49,19 +49,34 @@ class Extension {
 				'summary-params' => [
 					'title'
 				],
-				'email-subject' => 'bs-notifications-email-edit-subject',
+				'email-subject-message' => 'bs-notifications-email-edit-subject',
 				'email-subject-params' => array (
 					'title', 'agent', 'realname'
 				),
-				'email-body' => 'bs-notifications-email-edit-body',
+				'email-body-message' => 'bs-notifications-email-edit-body',
 				'email-body-params' => array (
-					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
+					'title', 'agent', 'summary', 'realname'
 				),
 				'web-body-message' => 'bs-notifications-web-edit-body',
 				'web-body-params' => array (
 					'title', 'agent', 'realname'
 				),
-				'extra-params' => array (),
+				'extra-params' => array (
+					'bundle' => [
+						'web' => true,
+						'email' => true,
+						'expandable' => true,
+						'bundle-message' => 'bs-notifications-edit-bundle',
+						'bundle-params' => ['title']
+					],
+					'secondary-links' => [
+						'agentlink' => [],
+						'difflink' => [
+							'prioritized' => true,
+							'label' => 'bs-notifications-edit-difflink-label'
+						]
+					]
+				),
 				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
@@ -75,11 +90,11 @@ class Extension {
 				'summary-params' => array (
 					'title'
 				),
-				'email-subject' => 'bs-notifications-email-create-subject',
+				'email-subject-message' => 'bs-notifications-email-create-subject',
 				'email-subject-params' => array (
 					'title', 'agent', 'realname'
 				),
-				'email-body' => 'bs-notifications-email-create-body',
+				'email-body-message' => 'bs-notifications-email-create-body',
 				'email-body-params' => array (
 					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
 				),
@@ -101,11 +116,11 @@ class Extension {
 				'summary-params' => array (
 					'title'
 				),
-				'email-subject' => 'bs-notifications-email-delete-subject',
+				'email-subject-message' => 'bs-notifications-email-delete-subject',
 				'email-subject-params' => array (
 					'title', 'agent', 'realname'
 				),
-				'email-body' => 'bs-notifications-email-delete-body',
+				'email-body-message' => 'bs-notifications-email-delete-body',
 				'email-body-params' => array (
 					'title', 'agent', 'deletereason', 'titlelink', 'difflink', 'realname'
 				),
@@ -132,11 +147,11 @@ class Extension {
 				'summary-params' => array (
 					'title'
 				),
-				'email-subject' => 'bs-notifications-email-move-subject',
+				'email-subject-message' => 'bs-notifications-email-move-subject',
 				'email-subject-params' => array (
 					'title', 'agent', 'newpage', 'realname'
 				),
-				'email-body' => 'bs-notifications-email-move-body',
+				'email-body-message' => 'bs-notifications-email-move-body',
 				'email-body-params' => array (
 					'title', 'agent', 'newtitle', 'newtitlelink', 'realname'
 				),
@@ -144,15 +159,7 @@ class Extension {
 				'web-body-params' => array (
 					'title', 'agent', 'newtitle', 'realname'
 				),
-				'extra-params' => array(
-					'bundle' => [
-						'web' => true,
-						'email' => true,
-						'expandable' => true,
-						'bundle-message' => 'bs-notifications-move-bundle',
-						'bundle-params' => []
-					]
-				),
+				'extra-params' => array(),
 				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);

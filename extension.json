@@ -25,7 +25,8 @@
 	},
 	"MessagesDirs": {
 		"BlueSpiceEchoConnector": [
-			"i18n"
+			"i18n",
+			"i18n/notifications"
 		]
 	},
 	"Hooks": {
@@ -47,6 +48,19 @@
 		"EchoGetBundleRules": [
 			"\\BlueSpice\\EchoConnector\\Hook\\EchoGetBundleRules\\GetBundleRules::callback"
 		]
+	},
+	"config_prefix": "bsg",
+	"config": {
+		"EchoHtmlMailTemplatePath": {
+			"value": "/templates",
+			"path": true
+		},
+		"EchoHtmlMailTemlateNames": {
+			"value": {
+				"single": "SingleMail",
+				"digest": "Digest"
+			}
+		}
 	},
 	"load_composer_autoloader": true,
 	"manifest_version": 2
