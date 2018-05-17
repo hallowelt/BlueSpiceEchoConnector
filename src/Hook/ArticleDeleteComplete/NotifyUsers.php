@@ -14,7 +14,7 @@ class NotifyUsers extends ArticleDeleteComplete {
 		$notifier = $notificationsManager->getNotifier( 'bsecho' );
 
 		$realname = \BlueSpice\Services::getInstance()->getBSUtilityFactory()
-			->getUserHelper()->getDisplayName( $this->user );
+			->getUserHelper( $this->user )->getDisplayName();
 
 		//Since at this point Title object for this page no longer ::exists(),
 		//we need to pass it inside extra-params to avoid automatic deletion

@@ -9,7 +9,6 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 	protected $notificationConfig;
 
 	protected $distributionType;
-	protected $emailFormat;
 
 	public function __construct( \EchoEvent $event, $language, \User $user, $distributionType ) {
 		global $wgEchoNotifications;
@@ -17,9 +16,8 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 		parent::__construct( $event, $language, $user, $distributionType );
 
 		$this->distributionType = $distributionType;
-		$this->mailFormat = \EchoEmailFormat::PLAIN_TEXT;
 
-		$this->paramParser = new \BlueSpice\EchoConnector\Formatter\ParamParser( $event );
+		$this->paramParser = new \BlueSpice\EchoConnector\ParamParser( $event );
 		//TODO: Get rid of global
 		$this->notificationConfig = $wgEchoNotifications[$this->type];
 	}
@@ -29,11 +27,6 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 	public function setDistributionType( $type ) {
 		$this->distributionType = $type;
 		$this->paramParser->setDistributionType( $type );
-	}
-
-	public function setEmailFormat( $format ) {
-		$this->emailFormat = $format;
-		$this->paramParser->setEmailFormat( $format );
 	}
 
 	public function canRender() {
@@ -184,7 +177,7 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 
 	public function getSecondaryLinks() {
 		if ( $this->isBundled() ) {
-		    // For the bundle, we don't need secondary actions
+			// For the bundle, we don't need secondary actions
 			return [];
 		}
 
@@ -194,7 +187,7 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 
 		$extra = $this->event->getExtra();
 		if( !isset( $extra['secondary-links'] ) ) {
-			return [];
+			$extra['secondary-links'] = [];
 		}
 
 		$secondaryLinksCfg = $this->notificationConfig['secondary-links'];
@@ -205,8 +198,18 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 				continue;
 			}
 			if( isset( $extra['secondary-links'][$key] ) ) {
-				$cfg['label'] = wfMessage( $cfg['label'] )->plain();
-				$cfg['url'] = $extra['secondary-links'][$key];
+				$slValue = $extra['secondary-links'][$key];
+				$cfg['label'] = wfMessage( $cfg['label'] );
+
+				if( !is_array( $slValue ) ) {
+					$cfg['url'] = $slValue;
+				} else {
+					$cfg['url'] = $slValue['url'];
+					if( isset( $slValue['label-params'] ) ) {
+						$cfg['label']->params( $slValue['label-params'] );
+					}
+				}
+				$cfg['label'] = $cfg['label']->parse();
 
 				$secondaryLinks[] = $cfg;
 			}

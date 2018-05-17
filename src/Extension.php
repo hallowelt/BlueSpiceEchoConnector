@@ -5,6 +5,13 @@ namespace BlueSpice\EchoConnector;
 class Extension {
 	public static function registerNotifications( \BlueSpice\NotificationManager $notificationsManager ) {
 		$echoNotifier = $notificationsManager->getNotifier( 'bsecho' );
+
+		/*$echoNotifier->registerIcon(
+			'delete',
+			[
+				'path' => 'BlueSpiceEchoConnector/resources/images/delete.png'
+			]
+		);*/
 		$echoNotifier->registerNotificationCategory(
 			'bs-admin-cat',
 			[
@@ -19,23 +26,32 @@ class Extension {
 			$echoNotifier,
 			[
 				'category' => 'bs-admin-cat',
-				'summary-message' => 'bs-notifications-addacount',
+				'summary-message' => 'bs-notifications-addaccount',
 				'summary-params' => [
 					'username'
 				],
 				'email-subject-message' => 'bs-notifications-email-addaccount-subject',
 				'email-subject-params' => [
-					'username', 'username'
+					'username', 'realname'
 				],
 				'email-body-message' => 'bs-notifications-email-addaccount-body',
 				'email-body-params' => [
-					'userlink', 'username', 'username', 'user'
+					'username', 'realname'
 				],
-				'web-body-message' => 'bs-notifications-email-addaccount-body',
+				'web-body-message' => 'bs-notifications-web-addaccount-body',
 				'web-body-params' => [
-					'realname', 'username'
+					'username', 'realname'
 				],
-				'extra-params' => array (),
+				'extra-params' => array (
+					'secondary-links' => [
+						'performer' => [
+							'label' => 'bs-notifications-addaccout-performer',
+							'prioritized' => true,
+							'icon' => 'userAvatar'
+						]
+					],
+					'icon' => 'edit-user-talk'
+				),
 				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
@@ -75,7 +91,8 @@ class Extension {
 							'prioritized' => true,
 							'label' => 'bs-notifications-edit-difflink-label'
 						]
-					]
+					],
+					'icon' => 'edit'
 				),
 				'user-locators' => [self::class . '::getUsersToNotify']
 			]
@@ -96,13 +113,18 @@ class Extension {
 				),
 				'email-body-message' => 'bs-notifications-email-create-body',
 				'email-body-params' => array (
-					'title', 'agent', 'summary', 'titlelink', 'difflink', 'realname'
+					'title', 'agent', 'realname', 'summary'
 				),
 				'web-body-message' => 'bs-notifications-web-create-body',
 				'web-body-params' => array (
 					'title', 'agent', 'realname'
 				),
-				'extra-params' => array (),
+				'extra-params' => array (
+					'icon' => 'edit',
+					'secondary-links' => [
+						'agentlink' => []
+					]
+				),
 				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);
@@ -122,16 +144,20 @@ class Extension {
 				),
 				'email-body-message' => 'bs-notifications-email-delete-body',
 				'email-body-params' => array (
-					'title', 'agent', 'deletereason', 'titlelink', 'difflink', 'realname'
+					'title', 'agent', 'realname', 'deletereason'
 				),
 				'web-body-message' => 'bs-notifications-web-delete-body',
 				'web-body-params' => array (
-					'title', 'agent', 'realname', 'deletereason'
+					'title', 'agent', 'realname'
 				),
 				'extra-params' => array (
 					//usually only existing titles can produce notifications
 					//we do not have a title after its deleted
-					'forceRender' => true
+					'forceRender' => true,
+					'secondary-links' => [
+						'agentlink' => []
+					],
+					'icon' => 'delete'
 				),
 				'user-locators' => [self::class . '::getUsersToNotify']
 			]
@@ -145,21 +171,25 @@ class Extension {
 				'category' => 'bs-page-actions-cat',
 				'summary-message' => 'bs-notifications-move',
 				'summary-params' => array (
-					'title'
+					'oldtitle'
 				),
 				'email-subject-message' => 'bs-notifications-email-move-subject',
 				'email-subject-params' => array (
-					'title', 'agent', 'newpage', 'realname'
+					'oldtitle', 'agent', 'title', 'realname'
 				),
 				'email-body-message' => 'bs-notifications-email-move-body',
 				'email-body-params' => array (
-					'title', 'agent', 'newtitle', 'newtitlelink', 'realname'
+					'oldtitle', 'agent', 'title', 'realname', 'movereason'
 				),
 				'web-body-message' => 'bs-notifications-web-move-body',
 				'web-body-params' => array (
-					'title', 'agent', 'newtitle', 'realname'
+					'oldtitle', 'agent', 'title', 'realname'
 				),
-				'extra-params' => array(),
+				'extra-params' => array(
+					'secondary-links' => [
+						'agentlink' => []
+					]
+				),
 				'user-locators' => [self::class . '::getUsersToNotify']
 			]
 		);

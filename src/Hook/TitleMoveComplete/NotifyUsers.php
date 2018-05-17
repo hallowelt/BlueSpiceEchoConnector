@@ -14,16 +14,17 @@ class NotifyUsers extends TitleMoveComplete {
 		$notifier = $notificationsManager->getNotifier( 'bsecho' );
 
 		$realname = \BlueSpice\Services::getInstance()->getBSUtilityFactory()
-			->getUserHelper()->getDisplayName( $this->user );
+			->getUserHelper( $this->user )->getDisplayName();
 
 		$notification = $notifier->getNotificationObject(
 			'bs-move',
 			[
 				'agent' => $this->user,
-				'title' => $this->title,
+				'title' => $this->newTitle,
 				'extra-params' => [
-					'newtitle' => $this->newTitle,
-					'realname' => $realname
+					'oldtitle' => $this->title,
+					'realname' => $realname,
+					'movereason' => $this->reason
 				]
 			]
 		);

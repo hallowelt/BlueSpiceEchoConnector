@@ -8,26 +8,46 @@ use MediaWiki\MediaWikiServices;
 class EchoHtmlDigestEmailFormatter extends \EchoHtmlDigestEmailFormatter {
 	protected $config;
 
+	protected $sitename;
+	protected $templateParser;
+	protected $templateNames;
+
 	public function __construct( \User $user, \Language $language, $digestMode ) {
 		parent::__construct( $user, $language, $digestMode );
+		global $wgSitename;
 
+		$this->sitename = $wgSitename;
 		$this->config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'bsg' );
+		$path = $this->config->get( 'EchoHtmlMailTemplatePath' );
+		$this->templateParser = new \TemplateParser( $path );
+
+		$this->templateNames = $this->config->get( 'EchoHtmlMailTemlateNames' );
 	}
 
 	protected function formatModels(array $models) {
-		$intro = $this->msg('echo-email-batch-body-intro-' . $this->digestMode)
-				->params($this->user->getName())
+		$greeting = $this->msg( 'echo-email-batch-body-intro-' . $this->digestMode )
+				->params( $this->user->getName() )
 				->parse();
-		$intro = nl2br($intro);
+		$greeting = nl2br( $greeting );
 
-		$eventsByCategory = $this->groupByCategory($models);
-		ksort($eventsByCategory);
-		$digestList = $this->renderDigestList($eventsByCategory);
+		$senderMessage = wfMessage( 'bs-notifications-htmlmail-sender-info', $this->sitename )->plain();
+
+		$eventsByCategory = $this->groupByCategory( $models );
+		ksort( $eventsByCategory );
+		$digestList = $this->renderDigestList( $eventsByCategory );
 
 		$htmlFormatter = new EchoHTMLEmailFormatter($this->user, $this->language);
 
+		$action = $htmlFormatter->renderLink(
+			[
+				'label' => $this->msg('echo-email-batch-link-text-view-all-notifications')->text(),
+				'url' => \SpecialPage::getTitleFor('Notifications')->getFullURL( '', false, PROTO_CANONICAL ),
+			],
+			$htmlFormatter::PRIMARY_LINK
+		);
+
 		$body = $this->renderBody(
-				$this->language, $intro, $digestList, $this->renderAction(), $htmlFormatter->getFooter()
+				$this->language, $greeting, $senderMessage, $digestList, $action, $htmlFormatter->getFooter()
 		);
 
 		$subject = $this->msg('echo-email-batch-subject-' . $this->digestMode)
@@ -40,16 +60,13 @@ class EchoHtmlDigestEmailFormatter extends \EchoHtmlDigestEmailFormatter {
 		];
 	}
 
-	protected function renderBody(\Language $language, $intro, $digestList, $action, $footer) {
-		$path = $this->config->get( 'EchoHtmlMailTemplatePath' );
-		$names = $this->config->get( 'EchoHtmlMailTemlateNames' );
-
-		$templateParser = new \TemplateParser( $path );
-		$html = $templateParser->processTemplate(
-			$names['digest'], [
-				'intro' => $intro,
-				'digest_list' => $digestList,
-				'actions' => $action,
+	protected function renderBody(\Language $language, $greeting, $senderMessage, $digestList, $action, $footer) {
+		$html = $this->templateParser->processTemplate(
+			$this->templateNames['digest'], [
+				'greeting' => $greeting,
+				'sender-info' => $senderMessage,
+				'digest-list' => $digestList,
+				'action' => $action,
 				'footer' => $footer
 			]
 		);
@@ -72,26 +89,23 @@ class EchoHtmlDigestEmailFormatter extends \EchoHtmlDigestEmailFormatter {
 	protected function renderDigestList( $eventsByCategory ) {
 		$result = [];
 		// build the html section for each category
-		foreach ($eventsByCategory as $category => $models) {
-			$output = $this->applyStyleToCategory(
-				$this->getCategoryTitle($category, count($models))
-			);
-			foreach ($models as $model) {
-				$output .= "\n" . $this->applyStyleToEvent($model);
+		foreach ( $eventsByCategory as $category => $models ) {
+			$events = [];
+			foreach( $models as $model ) {
+				$events[] = $this->getEventParams( $model );
 			}
-			$result[] = '<table border="0" width="100%">' . $output . '</table>';
+			
+			$output = $this->templateParser->processTemplate(
+				$this->templateNames['digest_list'],
+				[
+					'category' => $this->getCategoryTitle( $category, count( $models ) ),
+					'events' => $events
+				]
+			);
+			$result[] = $output;
 		}
 
-		return trim(implode("\n", $result));
-	}
-
-	protected function renderAction() {
-		return \Html::element(
-			'a', [
-				'href' => \SpecialPage::getTitleFor('Notifications')->getFullURL('', false, PROTO_CANONICAL),
-				'style' => EchoHtmlEmailFormatter::PRIMARY_LINK_STYLE,
-			], $this->msg('echo-email-batch-link-text-view-all-notifications')->text()
-		);
+		return trim( implode( "\n", $result ) );
 	}
 
 	/**
@@ -105,4 +119,17 @@ class EchoHtmlDigestEmailFormatter extends \EchoHtmlDigestEmailFormatter {
 			->parse();
 	}
 
+	protected function getEventParams( $model ) {
+		$iconUrl = wfExpandUrl(
+			\EchoIcon::getUrl( $model->getIconType(), $this->language->getCode() ),
+			PROTO_CANONICAL
+		);
+
+		$iconUrl = \Sanitizer::encodeAttribute( $iconUrl );
+
+		return [
+			'icon-url' => $iconUrl,
+			'text' => $model->getHeaderMessage()->parse()
+		];
+	}
 }

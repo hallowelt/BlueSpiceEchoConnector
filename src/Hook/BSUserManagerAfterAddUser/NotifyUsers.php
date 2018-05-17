@@ -12,15 +12,28 @@ class NotifyUsers extends BSUserManagerAfterAddUser {
 		$notifier = $notificationsManager->getNotifier( 'bsecho' );
 
 		$realname = \BlueSpice\Services::getInstance()->getBSUtilityFactory()
-			->getUserHelper()->getDisplayName( $this->user );
+			->getUserHelper( $this->user )->getDisplayName();
+
+		if( $realname !== $this->user->getName() ) {
+			$realname = wfMessage( 'bs-notifications-param-realname-with-username', $realname, $this->user->getName() )->plain();
+		}
+		$performerRealName = \BlueSpice\Services::getInstance()->getBSUtilityFactory()
+			->getUserHelper()->getDisplayName( $this->performer );
 
 		$notification = $notifier->getNotificationObject(
 			'bs-adduser',
 			[
+				'title' => $this->user->getUserPage(),
 				'agent' => $this->performer,
 				'extra-params' => [
 					'realname' => $realname,
-					'user' => $this->user
+					'user' => $this->user,
+					'secondary-links' => [
+						'performer' => [
+							'url' => $this->performer->getUserPage()->getFullURL(),
+							'label-params' => [$performerRealName]
+						]
+					]
 				]
 			]
 		);

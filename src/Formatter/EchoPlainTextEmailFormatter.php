@@ -9,7 +9,6 @@ class EchoPlainTextEmailFormatter extends \EchoPlainTextEmailFormatter {
 		//and set distro type manually usign custom function
 		if( $model instanceof \BlueSpice\EchoConnector\EchoEventPresentationModel ) {
 			$model->setDistributionType( 'email' );
-			$model->setEmailFormat( 'plain-text' );
 		}
 
 		return parent::formatModel($model);

@@ -8,13 +8,40 @@
 			}
 
 			.mail-container {
-				width: 400px;
+				width: 80%;
+				max-width: 600px;
 				margin-left: auto;
 				margin-right: auto;
-				background-color: #aeaeae;
+				background-color: #e7e7e7;
 				padding: 30px;
 			}
-
+			.intro-header {
+				position:relative;
+				width: 80%;
+				max-width: 600px;
+				margin-left: auto;
+				margin-right: auto;
+				background-color: #3e5389;
+				padding-top: 15px;
+				padding-bottom: 15px;
+				padding-left: 30px;
+				padding-right: 30px;
+			}
+			.intro-header .sender-info {
+				position: absolute;
+				right: 10px;
+				top: 4px;
+				font-size: .6em;
+			}
+			.intro-header span{
+				color: white;
+			}
+			.actions {
+				margin-top: 10px;
+			}
+			.actions div {
+				margin-bottom: 15px;
+			}
 			.icon {
 				float: left;
 				padding-right: 20px;
@@ -25,13 +52,30 @@
 		</style>
 	</head>
 	<body>
+		<div class='intro-header'>
+			<span>{{greeting}}</span>
+			<span class='sender-info'>{{sender-info}}</span>
+		 </div>
 		<div class='mail-container'>
+
 			<div class='icon'>
 				<img src='{{icon_url}}' />
 			</div>
 			<span>{{{header}}}</span>
 			<p>{{{body}}}</p>
-			<div class='actions'>{{{actions}}}</div>
+			<div class='actions'>
+				{{#actions}}
+				<div>
+					{{{primary}}}
+				</div>
+				<div>
+					<span>
+						{{secondary_label}}
+					</span><br/>
+					{{{secondary}}}
+				</div>
+				{{/actions}}
+			</div>
 		</div>
 		<div class='footer'>{{{footer}}}</div>
 	</body>

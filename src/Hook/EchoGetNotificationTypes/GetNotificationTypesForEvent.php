@@ -9,7 +9,7 @@ class GetNotificationTypesForEvent extends EchoGetNotificationTypes {
 	protected function doProcess() {
 		$type = $this->event->getType ();
 		if ( $type == "bs-adduser" ) {
-			$arrUserOptions = $user->getOptions ();
+			$arrUserOptions = $this->user->getOptions ();
 			$this->userNotifyTypes = array_diff ( $this->userNotifyTypes, array ( 'web', 'email' ) );
 
 			if ( isset ( $arrUserOptions[ 'echo-subscriptions-web-bs-admin-cat' ] ) &&

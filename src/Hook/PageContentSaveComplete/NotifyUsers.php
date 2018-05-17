@@ -20,7 +20,7 @@ class NotifyUsers extends PageContentSaveComplete {
 		$notifier = $notificationsManager->getNotifier( 'bsecho' );
 
 		$realname = \BlueSpice\Services::getInstance()->getBSUtilityFactory()
-			->getUserHelper()->getDisplayName( $this->user );
+			->getUserHelper( $this->user )->getDisplayName();
 
 		$title = $this->wikipage->getTitle();
 
@@ -32,7 +32,6 @@ class NotifyUsers extends PageContentSaveComplete {
 					'title' => $title,
 					'extra-params' => [
 						'summary' => $this->summary,
-						'titlelink' => true,
 						'realname' => $realname
 					]
 				]

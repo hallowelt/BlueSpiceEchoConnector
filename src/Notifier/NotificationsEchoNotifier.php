@@ -14,13 +14,15 @@ use \BlueSpice\EchoConnector\NotificationFormatter;
 class NotificationsEchoNotifier implements \BlueSpice\INotifier {
 	protected $echoNotifications;
 	protected $echoNotificationCategories;
+	protected $echoIcons;
 	
 	public function getNotificationObject( $key, $params ) {
 		return new EchoNotification( $key, $params );
 	}
 
 	public function init() {
-		global $wgEchoNotifications, $wgEchoNotificationCategories, $wgEchoNotifiers;
+		global $wgEchoNotifications, $wgEchoNotificationCategories, $wgEchoNotifiers,
+				$wgEchoNotificationIcons;
 
 		$wgEchoNotifiers = [
 			'web' => [
@@ -35,6 +37,9 @@ class NotificationsEchoNotifier implements \BlueSpice\INotifier {
 
 		$this->echoNotifications = &$wgEchoNotifications;
 		$this->echoNotificationCategories = &$wgEchoNotificationCategories;
+		$this->echoIcons = &$wgEchoNotificationIcons;
+
+		$this->registerIconsFromAttribute();
 	}
 
 	public function notify( $notification ) {
@@ -56,6 +61,20 @@ class NotificationsEchoNotifier implements \BlueSpice\INotifier {
 		\EchoEvent::create ( $echoNotif );
 
 		return \Status::newGood();
+	}
+
+	protected function registerIconsFromAttribute() {
+		$icons = \ExtensionRegistry::getInstance()->getAttribute(
+			'BlueSpiceEchoConnectorNotificationIcons'
+		);
+
+		foreach( $icons as $key => $params ) {
+			$this->registerIcon( $key, $params );
+		}
+	}
+
+	public function registerIcon( $key, $params ) {
+		$this->echoIcons[$key] = $params;
 	}
 
 	public function registerNotification( $key, $params ) {
