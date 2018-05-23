@@ -126,6 +126,10 @@ class NotificationsEchoNotifier implements \BlueSpice\INotifier {
 
 		$res = [];
 		foreach( $users as $user ) {
+			if( $user instanceof \User ) {
+				$res[$user->getId()] = $user;
+				continue;
+			}
 			$res[$user] = \User::newFromId( $user );
 		}
 

@@ -111,9 +111,14 @@ class EchoEventPresentationModel extends \EchoEventPresentationModel {
 			return false;
 		}
 
+		$label = $title->getPrefixedText();
+		if( $this->event->getExtraParam( 'primary-link-label', false ) ) {
+			$label = $this->event->getExtraParam( 'primary-link-label' );
+		}
+
 		return [
 			'url' => $title->getFullURL(),
-			'label' => $title->getPrefixedText()
+			'label' => $label
 		];
 	}
 

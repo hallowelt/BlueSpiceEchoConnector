@@ -6,12 +6,6 @@ class Extension {
 	public static function registerNotifications( \BlueSpice\NotificationManager $notificationsManager ) {
 		$echoNotifier = $notificationsManager->getNotifier( 'bsecho' );
 
-		/*$echoNotifier->registerIcon(
-			'delete',
-			[
-				'path' => 'BlueSpiceEchoConnector/resources/images/delete.png'
-			]
-		);*/
 		$echoNotifier->registerNotificationCategory(
 			'bs-admin-cat',
 			[
