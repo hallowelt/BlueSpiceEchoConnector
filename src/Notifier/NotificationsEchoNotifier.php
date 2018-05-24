@@ -97,8 +97,14 @@ class NotificationsEchoNotifier implements \BlueSpice\INotifier {
 			$params['user-locators'][] = self::class . '::setUsersToNotify';
 		}
 
+		$section = \EchoAttributeManager::ALERT;
+		if( isset( $params['section'] ) && $params['section'] == 'message' ) {
+			$section = \EchoAttributeManager::MESSAGE;
+		}
+
 		$this->echoNotifications[$key] = $extraParams + [
 			'category' => $params[ 'category' ],
+			'section' => $section,
 			'title-message' => $params[ 'summary-message' ],
 			'title-params' => $params[ 'summary-params' ],
 			'web-body-message' => $params[ 'web-body-message' ],
