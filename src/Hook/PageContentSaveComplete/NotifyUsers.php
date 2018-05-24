@@ -8,7 +8,7 @@ class NotifyUsers extends PageContentSaveComplete {
 	
 	protected function doProcess() {
 		if ( $this->user->isAllowed( 'bot' ) ) {
-			//return true;
+			return true;
 		}
 			
 		if ( $this->wikipage->getTitle()->getNamespace() === NS_USER_TALK ) {

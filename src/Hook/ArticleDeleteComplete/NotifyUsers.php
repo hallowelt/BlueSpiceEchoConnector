@@ -6,7 +6,7 @@ use BlueSpice\Hook\ArticleDeleteComplete;
 class NotifyUsers extends ArticleDeleteComplete {
 	protected function doProcess() {
 		if( $this->user->isAllowed( 'bot' ) ) {
-			//return true;
+			return true;
 		}
 
 		$notificationsManager = \BlueSpice\Services::getInstance()->getBSNotificationManager();
